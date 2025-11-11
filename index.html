@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Studio - Vocal & Instrumental Separator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --primary-light: #a29bfe;
+            --secondary: #00cec9;
+            --dark: #121212;
+            --darker: #0a0a0a;
+            --light: #f5f6fa;
+            --gray: #2d3436;
+            --gray-light: #636e72;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #e17055;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            color: var(--light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .studio-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .logo-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-right: 1rem;
+            text-shadow: 0 0 15px rgba(108, 92, 231, 0.7);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: var(--gray-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            transform: translateY(-5px);
+        }
+
+        .file-label {
+            display: block;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            color: var(--primary-light);
+            font-weight: bold;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        #audioFile {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed var(--primary);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #audioFile:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--primary-light);
+        }
+
+        .player-controls {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        #playPauseBtn {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        #playPauseBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(108, 92, 231, 0.6);
+        }
+
+        #playPauseBtn:disabled {
+            background: var(--gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .mixer-controls {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid rgba(0, 206, 201, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .mixer-controls h3 {
+            margin-top: 0;
+            color: var(--secondary);
+            text-shadow: 0 0 10px rgba(0, 206, 201, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            gap: 1rem;
+        }
+
+        .control-group label {
+            flex: 0 0 120px;
+            text-align: left;
+            font-weight: bold;
+            color: var(--light);
+        }
+
+        .slider-container {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            flex-grow: 1;
+            height: 10px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            background: white;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+            border: 2px solid var(--primary);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            background: white;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+            border: 2px solid var(--primary);
+        }
+
+        .slider-value {
+            width: 40px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+
+        .audio-players {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .player {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .player:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .player h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 1rem;
+            border-radius: 8px;
+        }
+
+        .info-text {
+            color: var(--gray-light);
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray-light);
+        }
+
+        .visualizer {
+            height: 100px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin: 1rem 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .visualizer-bar {
+            position: absolute;
+            bottom: 0;
+            width: 8px;
+            background: linear-gradient(to top, var(--primary), var(--secondary));
+            border-radius: 4px 4px 0 0;
+            margin: 0 2px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 0.5rem;
+            color: var(--light);
+        }
+
+        .feature-card p {
+            color: var(--gray-light);
+        }
+
+        @media (max-width: 768px) {
+            .audio-players {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .slider-container {
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="studio-container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-wave-square"></i>
+                </div>
+                <h1>Audio Studio</h1>
+            </div>
+            <p class="tagline">Upload a song and isolate vocals or instruments with studio-grade precision.</p>
+        </header>
+        
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-upload"></i>
+                </div>
+                <h3>Easy Upload</h3>
+                <p>Simply upload your audio file and let our technology do the rest.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-sliders-h"></i>
+                </div>
+                <h3>Real-time Control</h3>
+                <p>Adjust vocal and instrumental levels in real-time during playback.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-music"></i>
+                </div>
+                <h3>Studio Quality</h3>
+                <p>Professional-grade audio separation using advanced algorithms.</p>
+            </div>
+        </div>
+        
+        <div class="upload-section">
+            <label for="audioFile" class="file-label">
+                <i class="fas fa-file-audio"></i> Upload Your Song
+            </label>
+            <div class="file-input-wrapper">
+                <input type="file" id="audioFile" accept="audio/*">
+            </div>
+        </div>
+
+        <div class="player-controls">
+            <button id="playPauseBtn">
+                <i class="fas fa-play"></i> Play
+            </button>
+        </div>
+
+        <div class="visualizer" id="visualizer">
+            <!-- Visualizer bars will be generated by JavaScript -->
+        </div>
+
+        <div class="mixer-controls">
+            <h3><i class="fas fa-sliders-h"></i> Real-time Mixer</h3>
+            <div class="control-group">
+                <label for="vocalSlider"><i class="fas fa-microphone"></i> Vocals</label>
+                <div class="slider-container">
+                    <input type="range" id="vocalSlider" min="0" max="1" step="0.01" value="1">
+                    <span class="slider-value" id="vocalValue">1.00</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="instrumentalSlider"><i class="fas fa-guitar"></i> Instrumental</label>
+                <div class="slider-container">
+                    <input type="range" id="instrumentalSlider" min="0" max="1" step="0.01" value="1">
+                    <span class="slider-value" id="instrumentalValue">1.00</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="audio-players">
+            <div class="player">
+                <h3><i class="fas fa-headphones"></i> Original Track</h3>
+                <audio id="originalAudio" controls></audio>
+            </div>
+            <div class="player">
+                <h3><i class="fas fa-broadcast-tower"></i> Live Mix Output</h3>
+                <p class="info-text">(Adjust sliders during playback)</p>
+                <div class="visualizer" id="outputVisualizer">
+                    <!-- Output visualizer bars will be generated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Built with Web Audio API. Developed by Rodney Alfred Bowa.</p>
+        </footer>
+    </div>
+    
+    <script>
+        // --- DOM Elements ---
+        const audioFileInput = document.getElementById('audioFile');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const vocalSlider = document.getElementById('vocalSlider');
+        const instrumentalSlider = document.getElementById('instrumentalSlider');
+        const originalAudio = document.getElementById('originalAudio');
+        const vocalValue = document.getElementById('vocalValue');
+        const instrumentalValue = document.getElementById('instrumentalValue');
+        const visualizer = document.getElementById('visualizer');
+        const outputVisualizer = document.getElementById('outputVisualizer');
+
+        // --- Web Audio API State ---
+        let audioContext;
+        let audioBuffer;
+        let sourceNode;
+        let isPlaying = false;
+
+        // Gain nodes for controlling volume
+        let vocalGain;
+        let instrumentalGain;
+
+        // Visualizer state
+        let visualizerBars = [];
+        let outputVisualizerBars = [];
+        let analyser;
+        let outputAnalyser;
+        let dataArray;
+        let outputDataArray;
+
+        // Initialize visualizers
+        function initVisualizers() {
+            // Clear existing bars
+            visualizer.innerHTML = '';
+            outputVisualizer.innerHTML = '';
+            visualizerBars = [];
+            outputVisualizerBars = [];
+            
+            // Create bars for input visualizer
+            for (let i = 0; i < 64; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'visualizer-bar';
+                bar.style.left = `${i * 12}px`;
+                bar.style.height = '0px';
+                visualizer.appendChild(bar);
+                visualizerBars.push(bar);
+            }
+            
+            // Create bars for output visualizer
+            for (let i = 0; i < 64; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'visualizer-bar';
+                bar.style.left = `${i * 12}px`;
+                bar.style.height = '0px';
+                outputVisualizer.appendChild(bar);
+                outputVisualizerBars.push(bar);
+            }
+        }
+
+        // Update visualizers
+        function updateVisualizers() {
+            if (!analyser || !isPlaying) return;
+            
+            // Update input visualizer
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+            
+            for (let i = 0; i < visualizerBars.length; i++) {
+                const value = dataArray[i * 2] || 0;
+                const height = Math.max(2, value / 255 * 100);
+                visualizerBars[i].style.height = `${height}%`;
+                visualizerBars[i].style.opacity = 0.5 + (value / 255) * 0.5;
+            }
+            
+            // Update output visualizer
+            if (outputAnalyser) {
+                outputDataArray = new Uint8Array(outputAnalyser.frequencyBinCount);
+                outputAnalyser.getByteFrequencyData(outputDataArray);
+                
+                for (let i = 0; i < outputVisualizerBars.length; i++) {
+                    const value = outputDataArray[i * 2] || 0;
+                    const height = Math.max(2, value / 255 * 100);
+                    outputVisualizerBars[i].style.height = `${height}%`;
+                    outputVisualizerBars[i].style.opacity = 0.5 + (value / 255) * 0.5;
+                }
+            }
+            
+            if (isPlaying) {
+                requestAnimationFrame(updateVisualizers);
+            }
+        }
+
+        // Initialize visualizers on page load
+        window.addEventListener('load', initVisualizers);
+
+        // --- Functions ---
+
+        /**
+         * Initializes the Web Audio API AudioContext.
+         */
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        /**
+         * Loads and decodes the selected audio file.
+         */
+        audioFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Stop any currently playing audio
+            if (isPlaying) {
+                stopAudio();
+            }
+
+            initAudioContext();
+            originalAudio.src = URL.createObjectURL(file); // Set original audio for preview
+            
+            const arrayBuffer = await file.arrayBuffer();
+            audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            
+            playPauseBtn.disabled = false;
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Play';
+            
+            // Reset visualizers
+            initVisualizers();
+        });
+
+        /**
+         * Toggles audio playback.
+         */
+        playPauseBtn.addEventListener('click', () => {
+            if (!audioBuffer) {
+                alert('Please upload an audio file first.');
+                return;
+            }
+
+            if (isPlaying) {
+                stopAudio();
+            } else {
+                playAudio();
+            }
+        });
+
+        /**
+         * Builds the audio graph and starts playback.
+         */
+        function playAudio() {
+            if (!audioBuffer) return;
+
+            // If context was suspended (e.g., by browser), resume it
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            sourceNode = audioContext.createBufferSource();
+            sourceNode.buffer = audioBuffer;
+
+            // Create analysers for visualization
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            
+            outputAnalyser = audioContext.createAnalyser();
+            outputAnalyser.fftSize = 256;
+
+            // --- Create the separation graph ---
+            const splitter = audioContext.createChannelSplitter(2);
+            sourceNode.connect(splitter);
+            sourceNode.connect(analyser);
+
+            // --- 1. Create the VOCAL track (bandpassed Mid) ---
+            const mid = audioContext.createGain();
+            const gainL_m = audioContext.createGain();
+            const gainR_m = audioContext.createGain();
+            gainL_m.gain.value = 0.5;
+            gainR_m.gain.value = 0.5;
+            splitter.connect(gainL_m, 0);
+            gainL_m.connect(mid);
+            splitter.connect(gainR_m, 1);
+            gainR_m.connect(mid);
+
+            const vocalFilter = audioContext.createBiquadFilter();
+            vocalFilter.type = 'bandpass';
+            vocalFilter.frequency.value = 1850;
+            vocalFilter.Q.value = 1.5;
+            mid.connect(vocalFilter);
+
+            // --- 2. Create the INSTRUMENTAL track (Side + Low-passed Mid) ---
+            const bassFilter = audioContext.createBiquadFilter();
+            bassFilter.type = 'lowpass';
+            bassFilter.frequency.value = 140;
+            bassFilter.Q.value = 0.7;
+            mid.connect(bassFilter);
+
+            const side = audioContext.createGain();
+            const gainL_s = audioContext.createGain();
+            const gainR_s = audioContext.createGain();
+            gainL_s.gain.value = 0.5;
+            gainR_s.gain.value = -0.5;
+            splitter.connect(gainL_s, 0);
+            gainL_s.connect(side);
+            splitter.connect(gainR_s, 1);
+            gainR_s.connect(side);
+
+            const instrumentalMix = audioContext.createGain();
+            bassFilter.connect(instrumentalMix);
+            side.connect(instrumentalMix);
+
+            // --- 3. Create Gain controls for mixing ---
+            vocalGain = audioContext.createGain();
+            instrumentalGain = audioContext.createGain();
+
+            vocalGain.gain.value = vocalSlider.value;
+            instrumentalGain.gain.value = instrumentalSlider.value;
+
+            vocalFilter.connect(vocalGain);
+            instrumentalMix.connect(instrumentalGain);
+
+            // --- 4. Connect to destination ---
+            const outputMix = audioContext.createGain();
+            vocalGain.connect(outputMix);
+            instrumentalGain.connect(outputMix);
+            outputMix.connect(audioContext.destination);
+            outputMix.connect(outputAnalyser);
+
+            sourceNode.start();
+            isPlaying = true;
+            playPauseBtn.innerHTML = '<i class="fas fa-stop"></i> Stop';
+
+            // Start visualizer animation
+            updateVisualizers();
+
+            sourceNode.onended = () => {
+                stopAudio();
+            };
+        }
+
+        /**
+         * Stops audio playback and disconnects nodes.
+         */
+        function stopAudio() {
+            if (sourceNode) {
+                sourceNode.onended = null; // Prevent double-triggering
+                sourceNode.stop();
+                sourceNode.disconnect();
+                sourceNode = null;
+            }
+            isPlaying = false;
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Play';
+            
+            // Reset visualizers
+            for (let bar of visualizerBars) {
+                bar.style.height = '0px';
+            }
+            for (let bar of outputVisualizerBars) {
+                bar.style.height = '0px';
+            }
+        }
+
+        // --- Slider Event Listeners ---
+        vocalSlider.addEventListener('input', (e) => {
+            if (vocalGain) {
+                vocalGain.gain.value = e.target.value;
+            }
+            vocalValue.textContent = parseFloat(e.target.value).toFixed(2);
+        });
+
+        instrumentalSlider.addEventListener('input', (e) => {
+            if (instrumentalGain) {
+                instrumentalGain.gain.value = e.target.value;
+            }
+            instrumentalValue.textContent = parseFloat(e.target.value).toFixed(2);
+        });
+
+        // Initially disable the play button
+        playPauseBtn.disabled = true;
+    </script>
+</body>
+</html>
